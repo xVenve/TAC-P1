@@ -65,32 +65,37 @@ public class AKS extends Thread
 		do
 		{
 			BigInteger result;
-
-			int power = Math.max((int) (log()/log(base) - 2),1);
+			// Se elige power entre el máximo entre el logaritmo en base 2 de (n-base)-2 o 1
+			int power = Math.max((int) (log() / log(base) - 2), 1);
 			int comparison;
-			
-			do
-			{
+
+			do {
 				power++;
 				result = base.pow(power);
-				comparison = n.compareTo(result);
+				comparison = n.compareTo(result); // n ? base^power
 			}
-			while( comparison > 0 && power < Integer.MAX_VALUE );
-			
-			if( comparison == 0 )
-			{
-				if (verbose) System.out.println(n + " is a perfect power of " + base);
+			// Se van probando potencias de la base hasta que se tenga un número igual o mayor que n.
+			while (comparison > 0 && power < Integer.MAX_VALUE);  //nº iteraciones ceil(log_b(n))
+
+			// En el caso de que nuestra potencia sea igual a n, tenemos una potencia perfecta de n, por tanto n NO es primo.
+			if (comparison == 0) {
+				if (verbose)
+					System.out.println(n + " is a perfect power of " + base);
 				factor = base;
 				n_isprime = false;
 				return n_isprime;
 			}
-			
-			if (verbose) System.out.println(n + " is not a perfect power of " + base);
 
+			// En caso contrario, no es potencia perfecta, podemos seguir buscando potencias perfectas con otras bases.
+			if (verbose)
+				System.out.println(n + " is not a perfect power of " + base);
+
+			// Incrementamos la base en 1
 			base = base.add(BigInteger.ONE);
 			aSquared = base.pow(2);
 		}
-		while (aSquared.compareTo(this.n) <= 0);
+		// Continuacmos si la base al cuadrado no supera al numero que nos planteamos
+		while (aSquared.compareTo(this.n) <= 0); // nº iteraciones sqrt(n)
 		if (verbose) System.out.println(n + " is not a perfect power of any integer less than its square root");
 		
 
@@ -135,7 +140,7 @@ public class AKS extends Thread
 
 		
 		// For i = 1 to sqrt(totient)log(n) do
-		// if (X+i)^n <>�X^n + i (mod X^r - 1,n), output composite;
+		// if (X+i)^n <>�X^n + i (mod X^r - 1,n), output composite;
 
 		// sqrt(totient)log(n)
 		int limit = (int) (Math.sqrt(totient(r).doubleValue()) * this.log());
