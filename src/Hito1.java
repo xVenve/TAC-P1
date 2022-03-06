@@ -1,4 +1,5 @@
 import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.lang.Thread;
 
 public class Hito1 extends Thread{
@@ -147,19 +148,27 @@ public class Hito1 extends Thread{
 
     public static void main(String[] args) {
         Hito1 miclase = new Hito1();
-        String list[] = {"7789","7793","7817","7823","7829","7841","7853","7867","7873","7877","65563","65579","65581","65587","65599","65609","65617","65629","65633","65647","637369","637379","637409","637421","637423","637447","637459","637463","637471","637489","6346211","6346213","6346231","6346237","6346243","6346297","6346303","6346313","6346337","6346339","63435457","63435473","63435479","63435503","63435511","63435523","63435527","63435539","63435599","63435607","634336421","634336429","634336457","634336471","634336519","634336523","634336529","634336537","634336561","634336567","6343333387","6343333411","6343333417","6343333457","6343333459","6343333487","6343333561","6343333571","6343333603","6343333631"};
-        for (int i =0; i<list.length; i++){
-            miclase.n = new BigInteger(list[i]);
-            double startpot = System.currentTimeMillis();
-            miclase.potenciaPerfecta();
-            double timeelapsedpot = System.currentTimeMillis() - startpot;
-            double startr = System.currentTimeMillis();
-            BigInteger r = miclase.calculoR();
-            double timeelapsedr = System.currentTimeMillis() - startr;
-            double startMCD = System.currentTimeMillis();
-            miclase.calculoMCD(r);
-            double timeelapsedMCD = System.currentTimeMillis() - startMCD;
-            System.out.println(miclase.n + ";" + timeelapsedpot +  ";" + timeelapsedr + ";"+ timeelapsedMCD );
+        SecureRandom rand = new SecureRandom();
+
+        for (int bits = 2; bits <= 64; bits += 1) {
+            for (int i = 0; i < 10; i++) {
+                miclase.n = BigInteger.probablePrime(bits, rand);
+
+                double startpot = System.nanoTime();
+                miclase.potenciaPerfecta();
+                double timeelapsedpot = System.nanoTime() - startpot;
+
+                double startr = System.nanoTime();
+                BigInteger r = miclase.calculoR();
+                double timeelapsedr = System.nanoTime() - startr;
+
+                double startMCD = System.nanoTime();
+                miclase.calculoMCD(r);
+                double timeelapsedMCD = System.nanoTime() - startMCD;
+
+                System.out.println(miclase.n + ";" + timeelapsedpot + ";" + timeelapsedr + ";" + timeelapsedMCD);
+            }
         }
+        
     }
 }
