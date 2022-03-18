@@ -1,6 +1,9 @@
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.lang.Thread;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class Hito2 extends Thread {
 
@@ -24,14 +27,15 @@ public class Hito2 extends Thread {
         return r;
     }
 
-    public boolean paso5(BigInteger r) {
-        int limit = (int) (Math.sqrt(totient(r).doubleValue()) * this.log());
+    public int paso5(BigInteger r, int limit) {
         Poly modPoly = new Poly(BigInteger.ONE, r.intValue()).minus(new Poly(BigInteger.ONE, 0));
         Poly partialOutcome = new Poly(BigInteger.ONE, 1).modPow(n, modPoly, n);
+        int t = 0;
         for (int i = 1; i <= limit; i++) {
             Poly polyI = new Poly(BigInteger.valueOf(i), 0);
             Poly outcome = partialOutcome.plus(polyI);
             Poly p = new Poly(BigInteger.ONE, 1).plus(polyI).modPow(n, modPoly, n);
+            t++;
             if (!outcome.equals(p)) {
                 if (verbose)
                     System.out.println("(x+" + i + ")^" + n + " mod (x^" + r + " - 1, " + n + ") = " + outcome);
@@ -39,14 +43,14 @@ public class Hito2 extends Thread {
                     System.out.println("x^" + n + " + " + i + " mod (x^" + r + " - 1, " + n + ") = " + p);
                 factor = BigInteger.valueOf(i);
                 n_isprime = false;
-                return n_isprime;
+                return t;
             } else if (verbose)
                 System.out.println(
                         "(x+" + i + ")^" + n + " = x^" + n + " + " + i + " mod (x^" + r + " - 1, " + n + ") true");
         }
 
         n_isprime = true;
-        return n_isprime;
+        return t;
     }
 
     double logSave = -1;
@@ -100,6 +104,27 @@ public class Hito2 extends Thread {
             result = result.subtract(result.divide(n));
 
         return result;
+
+    }
+
+    int totientest(BigInteger n) {
+        BigInteger result = n;
+        int t = 0;
+        for (BigInteger i = BigInteger.valueOf(2); n.compareTo(i.multiply(i)) > 0; i = i.add(BigInteger.ONE)) {
+            if (n.mod(i).compareTo(BigInteger.ZERO) == 0)
+                result = result.subtract(result.divide(i));
+
+            while (n.mod(i).compareTo(BigInteger.ZERO) == 0) {
+                n = n.divide(i);
+                t++;
+            }
+
+        }
+
+        if (n.compareTo(BigInteger.ONE) > 0)
+            result = result.subtract(result.divide(n));
+
+        return t;
 
     }
 
@@ -227,33 +252,46 @@ public class Hito2 extends Thread {
         return n_isprime;
     }
 
-    public static void main(String[] args) {
-        Hito2 miclase = new Hito2();
+    public static void main(String[] args) throws IOException {
         SecureRandom rand = new SecureRandom();
+        double startot, timeelapsedtot, startp5, timeelapsedp5, startAKS, timeelapsedAKS;
+        new File("filename.csv");
+        FileWriter myWriter = new FileWriter("filename.csv");
+        myWriter.write("N,totint,primalidad,aks\n");
+        for (int bits = 2; bits <= 400; bits += 1) {
+            for (int k = 0; k < 10; k++) {
+                startot = 0;
+                timeelapsedtot = 0;
+                startp5 = 0;
+                timeelapsedp5 = 0;
+                startAKS = 0;
+                timeelapsedAKS = 0;
+                for (int i = 0; i < 10; i++) {
+                    Hito2 miclase = new Hito2();
+                    miclase.n = BigInteger.probablePrime(bits, rand);
+                    BigInteger r = BigInteger.valueOf(0);
+                    BigInteger tot = BigInteger.valueOf(0);
+                    for (int j = 0; j < 100; j++) {
+                        r = miclase.calculoR();
+                        startot = System.nanoTime();
+                        tot = miclase.totient(r);
+                        timeelapsedtot += System.nanoTime() - startot;
+                    }
+                    int limit = (int) (Math.sqrt(tot.doubleValue()) * miclase.log());
+                    startp5 = System.nanoTime();
+                    miclase.paso5(r, limit);
+                    timeelapsedp5 += System.nanoTime() - startp5;
 
-        for (int bits = 2; bits <= 64; bits += 1) {
-
-            for (int i = 0; i < 10; i++) {
-                miclase.n = BigInteger.probablePrime(bits, rand);
-
-                BigInteger r = miclase.calculoR();
-                double startp5 = System.nanoTime();
-                miclase.paso5(r);
-                double timeelapsedp5 = System.nanoTime() - startp5;
-
-                double startt = System.nanoTime();
-                miclase.isPrime();
-                double timeelapsedt = System.nanoTime() - startt;
-
-                // MillerRabin MThread = new MillerRabin(miclase.n,1);
-                // double startm = System.nanoTime();
-                // MThread.isPrime();
-                // double timeelapsedm = System.nanoTime() - startm;
-
-                System.out.println(miclase.n + ";" + timeelapsedp5 + ";" + timeelapsedt);
-
+                    startAKS = System.nanoTime();
+                    miclase.isPrime();
+                    timeelapsedAKS += System.nanoTime() - startAKS;
+                }
+                String text = BigInteger.probablePrime(bits, rand) + ";" + timeelapsedtot / 1000 + ";"
+                        + timeelapsedp5 / 10 + ";" + timeelapsedAKS / 10;
+                myWriter.write(text.replace(";", ",") + "\n");
+                System.out.println(bits + ";" + text);
             }
         }
-
+        myWriter.close();
     }
 }
