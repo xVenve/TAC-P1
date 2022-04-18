@@ -150,10 +150,13 @@ public class AKS extends Thread
 		Poly partialOutcome = new Poly(BigInteger.ONE, 1).modPow(n, modPoly, n);
 		for( int i = 1; i <= limit; i++ )
 		{
+			// i
 			Poly polyI = new Poly(BigInteger.valueOf(i),0);
 			// X^n + i (mod X^r - 1, n)
 			Poly outcome = partialOutcome.plus(polyI);
+			// (X+i)^n (mod X^r - 1, n)
 			Poly p = new Poly(BigInteger.ONE,1).plus(polyI).modPow(n, modPoly, n);
+			// X^n + i !≡ (X+i)^n (mod X^r - 1, n) Acaba, si no siguiente i
 			if( !outcome.equals(p) )
 			{
 				if (verbose) System.out.println( "(x+" + i + ")^" + n + " mod (x^" + r + " - 1, " + n + ") = " + outcome);
